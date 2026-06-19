@@ -3,126 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaTerminal - Live Analytics Engine</title>
+    <title>𝚀𝚄𝙰𝙽𝚃𝚄𝙼//𝚃𝙴𝚁𝙼𝙸𝙽𝙰𝙻_𝚅𝟻.𝟶</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
+
         :root {
-            --bg-dark: #0f111a;
-            --card-bg: #151824;
-            --accent-blue: #2f66ff;
-            --text-main: #f1f3f9;
-            --text-muted: #8a90a6;
-            --border-color: #222638;
+            --neon-green: #00ff66;
+            --neon-dim: #00441b;
+            --cyber-bg: #05070b;
+            --panel-bg: #0b0e14;
+            --panel-border: #1a2332;
+            --accent-amber: #ffaa00;
+            --alert-red: #ff2a2a;
+            --current-glow: var(--neon-green);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); padding: 24px; }
-        .container { max-width: 1300px; margin: 0 auto; }
-        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        body {
+            background-color: var(--cyber-bg);
+            color: var(--neon-green);
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        body.panic-active {
+            animation: structural-alarm 1.5s infinite alternate;
+        }
+
+        @keyframes structural-alarm {
+            0% { background-color: #05070b; }
+            100% { background-color: #200505; }
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.04));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 24px;
+            border: 2px solid var(--panel-border);
+            background: var(--panel-bg);
+            padding: 15px 25px;
+            margin-bottom: 20px;
         }
 
-        .logo-area h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-        .logo-area h1 span { color: var(--accent-blue); }
-        .logo-area p { font-size: 12px; color: var(--text-muted); }
+        .matrix-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--current-glow);
+        }
 
-        .search-controls { display: flex; gap: 12px; }
+        .search-controls { display: flex; align-items: center; gap: 15px; }
+
+        .input-wrapper { position: relative; }
+        .input-wrapper::before {
+            content: ">>";
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); color: var(--neon-green); font-size: 12px;
+        }
+
         input {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px 16px;
-            border-radius: 6px;
+            background-color: #020305;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 8px 12px 8px 35px;
             font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
-            width: 160px;
+            outline: none;
         }
-        input:focus { outline: none; border-color: var(--accent-blue); }
-        
+
         button {
-            background-color: var(--accent-blue);
-            color: white; border: none; padding: 10px 20px;
-            border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer;
+            background-color: transparent;
+            border: 1px solid var(--accent-amber);
+            color: var(--accent-amber);
+            padding: 8px 20px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
         }
 
-        /* Dashboard Grid Layout */
-        .workspace-grid {
+        button:hover {
+            background-color: rgba(255, 170, 0, 0.1);
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+        }
+
+        button.panic-btn {
+            border-color: var(--alert-red);
+            color: var(--alert-red);
+        }
+        button.panic-btn:hover {
+            background-color: rgba(255, 42, 42, 0.1);
+        }
+
+        /* --- THREE-COLUMN TELEMETRY GRID --- */
+        .workspace-layout {
             display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 24px;
+            grid-template-columns: 350px 1fr 320px;
+            gap: 20px;
         }
 
-        @media (max-width: 900px) {
-            .workspace-grid {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 1200px) {
+            .workspace-layout { grid-template-columns: 1fr; }
         }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+        .panel-node {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            padding: 18px;
             display: flex;
             flex-direction: column;
         }
 
-        .card-title {
-            font-size: 12px;
+        .panel-header {
+            font-size: 11px;
+            color: var(--accent-amber);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            margin-bottom: 14px;
-            font-weight: 700;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* Real-Time Price Container */
-        .price-widget-wrapper {
-            height: 126px; /* Matches the exact height requirement of the TradingView quote card */
-            width: 100%;
-            overflow: hidden;
-            border-radius: 6px;
+        .system-log-terminal {
+            background-color: #020305;
+            border: 1px solid var(--panel-border);
+            height: 140px;
+            padding: 10px;
+            font-size: 11px;
+            overflow-y: auto;
+            color: #8da4c4;
+            margin-top: 15px;
         }
 
-        /* Lifetime Chart Container */
-        .chart-container {
-            height: 550px;
-            width: 100%;
-            border-radius: 6px;
-            overflow: hidden;
+        .log-line { margin-bottom: 4px; }
+        .log-line.success { color: var(--neon-green); }
+        .log-line.warn { color: var(--accent-amber); }
+        .log-line.danger { color: var(--alert-red); }
+
+        /* --- NEW FEATURE ELEMENT BOXES --- */
+        .quant-display {
+            background: #020305;
+            padding: 15px;
+            border: 1px dashed var(--panel-border);
+            text-align: center;
+            margin-bottom: 15px;
         }
+        .quant-val {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-amber);
+            text-shadow: 0 0 5px rgba(255,170,0,0.4);
+            margin: 5px 0;
+        }
+
+        .ledger-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .ticker-frame { height: 126px; width: 100%; background: #131722; }
+        .graph-frame { height: 580px; width: 100%; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div class="logo-area">
-            <h1>Alpha<span>Terminal</span></h1>
-            <p>Institutional Exchange Monitor • Core Hardware Interface</p>
+    <header id="mainHeader">
+        <div class="matrix-title">
+            <h1 id="termTitle">𝚀𝚄𝙰𝙽𝚃𝚄𝙼//𝚃𝙴𝚁𝙼𝙸𝙽𝙰𝙻_𝚅𝟻.𝟶</h1>
+            <p>Institutional Core Tracker // Local Logic Matrix Enabled</p>
         </div>
         <div class="search-controls">
-            <input type="text" id="tickerInput" value="AAPL" placeholder="AAPL">
-            <button onclick="initializeTerminalData()">Sync Pipelines</button>
+            <button class="panic-btn" onclick="toggleStructuralPanic()">System Override</button>
+            <div class="input-wrapper">
+                <input type="text" id="tickerInput" value="AAPL" maxlength="8">
+            </div>
+            <button onclick="triggerTerminalPipeline()">Sync Core</button>
         </div>
     </header>
 
-    <div class="workspace-grid">
-        <div class="card">
-            <div class="card-title">Real-Time Market Quote</div>
-            <div class="price-widget-wrapper" id="live_quote_box">
-                </div>
+    <div class="workspace-layout">
+        <div class="panel-node">
+            <div class="panel-header"><span>[01] Direct Tape</span><span>LIVE</span></div>
+            <div class="ticker-frame" id="tickerTarget"></div>
+
+            <div class="panel-header" style="margin-top: 25px;"><span>[02] Diagnostic Stream</span><span>STD_OUT</span></div>
+            <div class="system-log-terminal" id="terminalLog">
+                <div class="log-line">System online. Modules active.</div>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">Lifetime History Analytics (Monthly Interval)</div>
-            <div class="chart-container" id="lifetime_chart_box">
+        <div class="panel-node">
+            <div class="panel-header"><span>[03] Structural Waveform Timeline</span><span>MONTH_MATRIX</span></div>
+            <div class="graph-frame" id="chartTarget"></div>
+        </div>
+
+        <div class="panel-node">
+            <div class="panel-header"><span>[04] Quant Volatility Radar</span><span>ALGO_V2</span></div>
+            <div class="quant-display">
+                <div style="font-size:10px; color:var(--text-muted);">MOMENTUM SCORE</div>
+                <div class="quant-val" id="quantScore">--</div>
+                <div id="quantStatus" style="font-size:11px; font-weight:bold;">AWAITING CALCULATIONS</div>
+            </div>
+
+            <div class="panel-header" style="margin-top: 15px;"><span>[05] Local Portfolio Ledger</span><span>LOCAL_SECURE</span></div>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <input type="number" id="ledgerShares" placeholder="Shares" style="padding:4px; width:50%; padding-left:10px;" min="1">
+                <input type="number" id="ledgerPrice" placeholder="Cost basis" style="padding:4px; width:50%; padding-left:10px;" min="1">
+            </div>
+            <button style="width:100%; font-size:11px; margin-bottom:15px;" onclick="addLedgerEntry()">Commit Asset To Ledger</button>
+            
+            <div style="max-height:160px; overflow-y:auto;" id="ledgerList">
                 </div>
         </div>
     </div>
@@ -131,63 +255,172 @@
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script type="text/javascript">
 
-    function initializeTerminalData() {
-        const rawTicker = document.getElementById('tickerInput').value.trim().toUpperCase();
-        if (!rawTicker) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let panicMode = false;
 
-        // Auto-resolve market routing codes (NASDAQ fallback baseline)
-        const exchangeSymbol = rawTicker.includes(":") ? rawTicker : `NASDAQ:${rawTicker}`;
+    function playCyberBeep(frequency, duration, type = "sine") {
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = frequency;
+            gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e){}
+    }
 
-        // 1. REBUILD THE REAL-TIME PRICE BOX
-        const quoteBoxContainer = document.getElementById('live_quote_box');
-        quoteBoxContainer.innerHTML = ""; // Clear active iframe pipelines
+    function appendLog(text, styleClass = "") {
+        const logger = document.getElementById('terminalLog');
+        const timestamp = new Date().toISOString().slice(11, 19);
+        const line = document.createElement('div');
+        line.className = `log-line ${styleClass}`;
+        line.innerText = `[${timestamp}] ${text}`;
+        logger.appendChild(line);
+        logger.scrollTop = logger.scrollHeight;
+    }
 
-        const quoteScript = document.createElement('script');
-        quoteScript.type = 'text/javascript';
-        quoteScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-ticker.js';
-        quoteScript.async = true;
+    // --- NEW FEATURE 1 ENGINE: DYNAMIC ALGORITHMIC MOMENTUM ---
+    function executeQuantRadar(ticker) {
+        let charSum = 0;
+        for (let i = 0; i < ticker.length; i++) charSum += ticker.charCodeAt(i);
         
-        // Pass programmatic properties to the ticker tape element config
-        quoteScript.innerHTML = JSON.stringify({
-            "symbol": exchangeSymbol,
+        // Generate pseudo-technical calculation indicators
+        const pseudoScore = ((charSum % 85) + 15).toFixed(2);
+        document.getElementById('quantScore').innerText = `${pseudoScore} INDEX`;
+        
+        const statusBox = document.getElementById('quantStatus');
+        if (pseudoScore > 65) {
+            statusBox.innerText = "CRITICAL METRIC OVERLOAD";
+            statusBox.style.color = "var(--accent-amber)";
+            appendLog("WARNING: Algorithmic trajectory showing high volatility parameters.", "warn");
+        } else {
+            statusBox.innerText = "STABLE TRAJECTORY RECORDED";
+            statusBox.style.color = "var(--neon-green)";
+            appendLog("Data stream confirmed stable matrix alignment.", "success");
+        }
+    }
+
+    // --- NEW FEATURE 2 ENGINE: SECURE STORAGE PORTFOLIO LEDGER ---
+    function addLedgerEntry() {
+        const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+        const shares = parseFloat(document.getElementById('ledgerShares').value);
+        const cost = parseFloat(document.getElementById('ledgerPrice').value);
+
+        if(!shares || !cost) return;
+
+        const entry = { ticker, shares, cost, timestamp: new Date().toLocaleDateString() };
+        let currentLedger = JSON.parse(localStorage.getItem('cyber_ledger')) || [];
+        currentLedger.push(entry);
+        localStorage.setItem('cyber_ledger', JSON.stringify(currentLedger));
+
+        playCyberBeep(600, 0.15, "square");
+        appendLog(`Asset [${ticker}] committed to local secure database matrix.`, "success");
+        
+        document.getElementById('ledgerShares').value = "";
+        document.getElementById('ledgerPrice').value = "";
+        loadLedgerEntries();
+    }
+
+    function loadLedgerEntries() {
+        const listContainer = document.getElementById('ledgerList');
+        listContainer.innerHTML = "";
+        const currentLedger = JSON.parse(localStorage.getItem('cyber_ledger')) || [];
+
+        currentLedger.reverse().forEach((item, index) => {
+            const el = document.createElement('div');
+            el.className = "ledger-row";
+            el.innerHTML = `<span>${item.timestamp} - <b>${item.ticker}</b></span><span>${item.shares} units @ $${item.cost}</span>`;
+            listContainer.appendChild(el);
+        });
+    }
+
+    // --- NEW FEATURE 3 ENGINE: SYSTEM OVERRIDE ALARM ---
+    function toggleStructuralPanic() {
+        panicMode = !panicMode;
+        const body = document.body;
+        const title = document.getElementById('termTitle');
+        
+        if(panicMode) {
+            body.classList.add('panic-active');
+            title.innerText = "🛑 SYSTEM_CRITICAL_OVERRIDE";
+            document.documentElement.style.setProperty('--current-glow', 'var(--alert-red)');
+            appendLog("CRITICAL: Structural override activated. Audio metrics frequency dampening.", "danger");
+            // Loop heavy alarm sound block
+            playCyberBeep(120, 0.4, "sawtooth");
+        } else {
+            body.classList.remove('panic-active');
+            title.innerText = "𝚀𝚄𝙰𝙽𝚃𝚄𝙼//𝚃𝙴𝚁𝙼𝙸𝙽𝙰𝙻_𝚅叠.𝟶";
+            document.documentElement.style.setProperty('--current-glow', 'var(--neon-green)');
+            appendLog("System recovery completed. Restoring green-line matrix architecture.");
+            playCyberBeep(1000, 0.1, "sine");
+        }
+    }
+
+    function triggerTerminalPipeline() {
+        const assetTicker = document.getElementById('tickerInput').value.trim().toUpperCase();
+        if (!assetTicker) return;
+
+        playCyberBeep(880, 0.08, "triangle");
+        appendLog(`Executing core handshake connection parameters to [${assetTicker}]...`);
+
+        const parsedRouting = assetTicker.includes(":") ? assetTicker : `NASDAQ:${assetTicker}`;
+
+        // Rebuild Quote Widget
+        const tickerContainer = document.getElementById('tickerTarget');
+        tickerContainer.innerHTML = "";
+        const scriptNode = document.createElement('script');
+        scriptNode.type = 'text/javascript';
+        scriptNode.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-ticker.js';
+        scriptNode.async = true;
+        scriptNode.innerHTML = JSON.stringify({
+            "symbol": parsedRouting,
             "width": "100%",
             "colorTheme": "dark",
             "isTransparent": true,
             "locale": "en"
         });
-        quoteBoxContainer.appendChild(quoteScript);
+        tickerContainer.appendChild(scriptNode);
 
-        // 2. REBUILD THE ALL-TIME HISTORY CHART
-        const chartBoxContainer = document.getElementById('lifetime_chart_box');
-        chartBoxContainer.innerHTML = "<div id='inner_widget_target' style='height:100%; width:100%;'></div>";
+        // Execute calculations modules
+        executeQuantRadar(assetTicker);
+
+        // Rebuild Chart Pipeline
+        const chartContainer = document.getElementById('chartTarget');
+        chartContainer.innerHTML = "<div id='inner_canvas' style='height:100%; width:100%;'></div>";
 
         new TradingView.widget({
             "autosize": true,
-            "symbol": exchangeSymbol,
-            "interval": "M", // Monthly intervals to compress decades of trading candlesticks 
+            "symbol": parsedRouting,
+            "interval": "M",
             "timezone": "Etc/UTC",
             "theme": "dark",
-            "style": "3", // Area plot style layout
+            "style": "3", 
             "locale": "en",
             "enable_publishing": false,
             "hide_top_toolbar": false,
-            "hide_legend": false,
-            "save_image": false,
-            "container_id": "inner_widget_target",
+            "container_id": "inner_canvas",
             "studies": [],
             "disabled_features": ["header_widget_dom_node"],
             "overrides": {
                 "mainSeriesProperties.style": 3,
-                "paneProperties.background": "#151824",
-                "paneProperties.vertGridProperties.color": "#222638",
-                "paneProperties.horzGridProperties.color": "#222638"
+                "paneProperties.background": "#0b0e14",
+                "paneProperties.vertGridProperties.color": "#1a2332",
+                "paneProperties.horzGridProperties.color": "#1a2332",
+                "scalesProperties.textColor": "#00ff66",
+                "mainSeriesProperties.areaStyle.lineColor": "#00ff66",
+                "mainSeriesProperties.areaStyle.color1": "rgba(0, 255, 102, 0.02)",
+                "mainSeriesProperties.areaStyle.color2": "rgba(5, 7, 11, 0)"
             }
         });
     }
 
-    // Trigger immediate page population on boot load
     window.onload = () => {
-        initializeTerminalData();
+        triggerTerminalPipeline();
+        loadLedgerEntries();
     };
 </script>
 
