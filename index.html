@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaTerminal - Live Analytics Engine</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-bg: #151824;
+            --accent-blue: #2f66ff;
+            --text-main: #f1f3f9;
+            --text-muted: #8a90a6;
+            --border-color: #222638;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); padding: 24px; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo-area h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .logo-area h1 span { color: var(--accent-blue); }
+        .logo-area p { font-size: 12px; color: var(--text-muted); }
+
+        .search-controls { display: flex; gap: 12px; }
+        input {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            width: 160px;
+        }
+        input:focus { outline: none; border-color: var(--accent-blue); }
+        
+        button {
+            background-color: var(--accent-blue);
+            color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer;
+        }
+
+        /* Dashboard Grid Layout */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+
+        /* Real-Time Price Container */
+        .price-widget-wrapper {
+            height: 126px; /* Matches the exact height requirement of the TradingView quote card */
+            width: 100%;
+            overflow: hidden;
+            border-radius: 6px;
+        }
+
+        /* Lifetime Chart Container */
+        .chart-container {
+            height: 550px;
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <h1>Alpha<span>Terminal</span></h1>
+            <p>Institutional Exchange Monitor • Core Hardware Interface</p>
+        </div>
+        <div class="search-controls">
+            <input type="text" id="tickerInput" value="AAPL" placeholder="AAPL">
+            <button onclick="initializeTerminalData()">Sync Pipelines</button>
+        </div>
+    </header>
+
+    <div class="workspace-grid">
+        <div class="card">
+            <div class="card-title">Real-Time Market Quote</div>
+            <div class="price-widget-wrapper" id="live_quote_box">
+                </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Lifetime History Analytics (Monthly Interval)</div>
+            <div class="chart-container" id="lifetime_chart_box">
+                </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script type="text/javascript">
+
+    function initializeTerminalData() {
+        const rawTicker = document.getElementById('tickerInput').value.trim().toUpperCase();
+        if (!rawTicker) return;
+
+        // Auto-resolve market routing codes (NASDAQ fallback baseline)
+        const exchangeSymbol = rawTicker.includes(":") ? rawTicker : `NASDAQ:${rawTicker}`;
+
+        // 1. REBUILD THE REAL-TIME PRICE BOX
+        const quoteBoxContainer = document.getElementById('live_quote_box');
+        quoteBoxContainer.innerHTML = ""; // Clear active iframe pipelines
+
+        const quoteScript = document.createElement('script');
+        quoteScript.type = 'text/javascript';
+        quoteScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-single-ticker.js';
+        quoteScript.async = true;
+        
+        // Pass programmatic properties to the ticker tape element config
+        quoteScript.innerHTML = JSON.stringify({
+            "symbol": exchangeSymbol,
+            "width": "100%",
+            "colorTheme": "dark",
+            "isTransparent": true,
+            "locale": "en"
+        });
+        quoteBoxContainer.appendChild(quoteScript);
+
+        // 2. REBUILD THE ALL-TIME HISTORY CHART
+        const chartBoxContainer = document.getElementById('lifetime_chart_box');
+        chartBoxContainer.innerHTML = "<div id='inner_widget_target' style='height:100%; width:100%;'></div>";
+
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": exchangeSymbol,
+            "interval": "M", // Monthly intervals to compress decades of trading candlesticks 
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "3", // Area plot style layout
+            "locale": "en",
+            "enable_publishing": false,
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false,
+            "container_id": "inner_widget_target",
+            "studies": [],
+            "disabled_features": ["header_widget_dom_node"],
+            "overrides": {
+                "mainSeriesProperties.style": 3,
+                "paneProperties.background": "#151824",
+                "paneProperties.vertGridProperties.color": "#222638",
+                "paneProperties.horzGridProperties.color": "#222638"
+            }
+        });
+    }
+
+    // Trigger immediate page population on boot load
+    window.onload = () => {
+        initializeTerminalData();
+    };
+</script>
+
+</body>
+</html>
